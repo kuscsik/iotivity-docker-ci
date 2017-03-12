@@ -165,8 +165,45 @@ xfonts-encodings \
 xfonts-utils \
 zlib1g-dev
 
+# Dependencies
+RUN  apt-get update && apt-get install -yq libstdc++6:i386 zlib1g:i386 libncurses5:i386 ant maven --no-install-recommends
+ENV GRADLE_URL http://services.gradle.org/distributions/gradle-2.2.1-all.zip
+RUN curl -L ${GRADLE_URL} -o /tmp/gradle-2.2.1-all.zip && unzip /tmp/gradle-2.2.1-all.zip -d /usr/local && rm /tmp/gradle-2.2.1-all.zip
+ENV GRADLE_HOME /usr/local/gradle-2.2.1
+
+# Download and untar SDK
+#ENV ANDROID_SDK_URL http://dl.google.com/android/android-sdk_r24.2-linux.tgz
+#RUN curl -L ${ANDROID_SDK_URL} | tar xz -C /usr/local
+#ENV ANDROID_HOME /usr/local/android-sdk-linux
+
+# Install Android SDK components
+#ENV ANDROID_SDK_COMPONENTS platform-tools,build-tools-21.1.2,android-21,extra-android-support
+#RUN echo y | ${ANDROID_HOME}/tools/android update sdk --no-ui --all --filter "${ANDROID_SDK_COMPONENTS}"
+
+# Path
+#ENV PATH $PATH:${ANDROID_HOME}/tools:$ANDROID_HOME/platform-tools:${GRADLE_HOME}/bin
+
+WORKDIR /usr/local
+RUN curl -L -O  http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin
+RUN chmod a+x android-ndk-r10d-linux-x86_64.bin
+RUN ./android-ndk-r10d-linux-x86_64.bin 1> /dev/null 2>&1 && rm android-ndk-r10d-linux-x86_64.bin
+
+ENV ANDROID_NDK /usr/local/android-ndk-r10d
+
+RUN git clone https://github.com/01org/tinycbor.git /usr/local/tinycbor && cd /usr/local/tinycbor && git checkout v0.4
+
+RUN git clone  https://github.com/ARMmbed/mbedtls.git  /usr/local/mbedtls
+
+RUN cd /usr/local/mbedtls && git checkout mbedtls-2.4.0 &>/dev/null
+
 ADD BuildScript /root/BuildScript
 RUN chmod +x /root/BuildScript
+
+RUN apt-get update && apt-get install -y libcurl4-openssl-dev \
+    libsqlite3-dev autoconf libtool software-properties-common python-software-properties vim
+
+
+# RUN add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-5 g++-5
 
 WORKDIR /root
 
